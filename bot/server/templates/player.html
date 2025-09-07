@@ -1,111 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Play Files</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-Frame-Options" content="deny">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buffered MP4/MKV Player</title>
 
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
   <style>
-    html, body { margin: 0; height: 100%; }
-    #stream-media { height: 100%; width: 100%; }
-    #error-message { color: red; font-size: 24px; text-align: center; margin-top: 20px; }
-    .plyr__video-wrapper .plyr-download-button,
-    .plyr__video-wrapper .plyr-share-button {
-      position: absolute; width: 30px; height: 30px; border-radius: 50%;
-      text-align: center; line-height: 30px; color: white; z-index: 10;
-      background-color: rgba(0,0,0,0.7); cursor: pointer;
-    }
-    .plyr__video-wrapper .plyr-download-button { top: 10px; left: 10px; }
-    .plyr__video-wrapper .plyr-share-button { top: 50px; left: 10px; }
-    .plyr__video-wrapper .plyr-download-button:hover,
-    .plyr__video-wrapper .plyr-share-button:hover {
-      background-color: rgba(255,255,255,0.7); color: black;
-    }
-    .plyr__video-wrapper .plyr-download-button:before {
-      font-family: "Font Awesome 5 Free"; content: "\f019"; font-weight: bold;
-    }
-    .plyr__video-wrapper .plyr-share-button:before {
-      font-family: "Font Awesome 5 Free"; content: "\f064"; font-weight: bold;
-    }
-    .plyr, .plyr__video-wrapper, .plyr__video-embed iframe { height: 100%; }
+    html, body { margin:0; height:100%; background:#000; }
+    #stream-media { width:100%; height:100%; }
+    #error-message { color:red; text-align:center; margin-top:20px; }
   </style>
 </head>
-
 <body>
-  <video id="stream-media" controls preload="metadata" playsinline>
-    <source src="" type="">
-  </video>
+  <video id="stream-media" controls></video>
   <div id="error-message"></div>
 
   <script>
-    var player = new Plyr('#stream-media', {
-      controls: ['play-large', 'rewind', 'play', 'fast-forward', 'progress', 'current-time', 'mute', 'settings', 'pip', 'fullscreen'],
-      settings:['speed','loop'],
-      speed:{selected:1,options:[0.25,0.5,0.75,1,1.25,1.5,1.75,2]},
-      seek: 10,
-      keyboard: { focused: true, global: true },
+    const mediaLink = "{{ mediaLink }}"; // backend injects URL
+    const videoEl = document.getElementById("stream-media");
+
+    // Init Plyr
+    const player = new Plyr(videoEl, {
+      controls: ['play-large','rewind','play','fast-forward','progress','current-time','mute','settings','fullscreen'],
+      settings: ['speed','loop'],
     });
 
-    var mediaLink = "{{ mediaLink }}"; // backend template var
-
-    if (mediaLink) {
-      var videoEl = document.querySelector('#stream-media');
-      videoEl.querySelector('source').setAttribute('src', mediaLink);
-
-      // Force buffering control
-      videoEl.preload = "auto";
-      videoEl.autoplay = false;
-
-      // Try to keep video ahead of playback
-      videoEl.addEventListener("timeupdate", function () {
-        var buffered = 0;
-        if (videoEl.buffered.length > 0) {
-          buffered = videoEl.buffered.end(videoEl.buffered.length - 1) - videoEl.currentTime;
-        }
-        // If buffer less than 10s, pause and let it buffer
-        if (buffered < 10 && !videoEl.paused) {
-          videoEl.pause();
-        }
-        // Resume once buffer ahead enough
-        if (buffered > 20 && videoEl.paused && !player.paused) {
-          videoEl.play();
-        }
-      });
-
-      player.restart();
-
-      // Download Button
-      var downloadButton = document.createElement('div');
-      downloadButton.className = 'plyr-download-button';
-      downloadButton.onclick = function(event) {
-        event.stopPropagation();
-        var link = document.createElement('a');
-        link.href = mediaLink;
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
-      player.elements.container.querySelector('.plyr__video-wrapper').appendChild(downloadButton);
-
-      // Share Button
-      var shareButton = document.createElement('div');
-      shareButton.className = 'plyr-share-button';
-      shareButton.onclick = function(event) {
-        event.stopPropagation();
-        if (navigator.share) {
-          navigator.share({ title: "Play", url: mediaLink });
-        }
-      };
-      player.elements.container.querySelector('.plyr__video-wrapper').appendChild(shareButton);
-
+    if (!mediaLink) {
+      document.getElementById("error-message").textContent = "Error: Media URL not provided";
     } else {
-      document.getElementById('error-message').textContent = 'Error: Media URL not provided';
+      if ("MediaSource" in window) {
+        const mediaSource = new MediaSource();
+        videoEl.src = URL.createObjectURL(mediaSource);
+
+        mediaSource.addEventListener("sourceopen", () => {
+          fetch(mediaLink)
+            .then(res => {
+              if (!res.body) throw new Error("ReadableStream not supported");
+              return res.body.getReader();
+            })
+            .then(reader => {
+              // You may need to set correct MIME depending on your file (MP4 example below)
+              const mime = 'video/mp4; codecs="avc1.64001E, mp4a.40.2"';
+              const sourceBuffer = mediaSource.addSourceBuffer(mime);
+
+              function read() {
+                reader.read().then(({done, value}) => {
+                  if (done) {
+                    mediaSource.endOfStream();
+                    return;
+                  }
+                  sourceBuffer.appendBuffer(value);
+                  read();
+                });
+              }
+              read();
+            })
+            .catch(err => {
+              document.getElementById("error-message").textContent = "Streaming error: " + err;
+            });
+        });
+      } else {
+        // Fallback: normal playback
+        videoEl.src = mediaLink;
+      }
     }
   </script>
 </body>
