@@ -1,136 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Play Files</title>
+<head>
+  <title>Play Files</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-Frame-Options" content="deny">
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-Frame-Options" content="deny">
+  <!-- MediaElement.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelementplayer.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelement-and-player.min.js"></script>
 
-    <!-- MediaElement.js -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelementplayer.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelement-and-player.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: black;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-    <style>
-      html, body {
-        margin: 0;
-        height: 100%;
-      }
+    /* Header with logo */
+    #header {
+      background: #111;
+      padding: 10px;
+      text-align: center;
+    }
+    #header img {
+      height: 40px;
+    }
 
-      #stream-media {
-        width: 100%;
-        height: 100%;
-      }
+    #player-container {
+      flex: 1;
+      width: 100%;
+      position: relative;
+    }
 
-      #error-message {
-        color: red;
-        font-size: 24px;
-        text-align: center;
-        margin-top: 20px;
-      }
+    #stream-media {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
 
-      .mejs__overlay-button {
-        display: none !important; /* hide default overlay play button */
-      }
+    #error-message {
+      color: red;
+      font-size: 24px;
+      text-align: center;
+      margin-top: 20px;
+    }
 
-      .custom-download-button,
-      .custom-share-button {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        width: 30px;
-        height: 30px;
-        background-color: rgba(0, 0, 0, 0.7);
-        border-radius: 50%;
-        text-align: center;
-        line-height: 30px;
-        color: white;
-        cursor: pointer;
-        z-index: 9999;
-      }
+    /* Custom buttons */
+    .custom-download-button,
+    .custom-share-button {
+      position: absolute;
+      left: 10px;
+      width: 35px;
+      height: 35px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 35px;
+      color: white;
+      cursor: pointer;
+      z-index: 9999;
+      font-size: 16px;
+    }
 
-      .custom-share-button {
-        top: 50px;
-      }
+    .custom-download-button { top: 10px; }
+    .custom-share-button { top: 55px; }
 
-      .custom-download-button:hover,
-      .custom-share-button:hover {
-        background-color: rgba(255, 255, 255, 0.7);
-        color: black;
-      }
+    .custom-download-button:hover,
+    .custom-share-button:hover {
+      background-color: rgba(255, 255, 255, 0.7);
+      color: black;
+    }
 
-      .custom-download-button:before {
-        font-family: "Font Awesome 5 Free";
-        content: "\f019";
-        font-weight: bold;
-      }
+    /* Watermark logo inside player */
+    .watermark {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      opacity: 0.8;
+      z-index: 9999;
+    }
+    .watermark img {
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div id="header">
+    <img src="https://chadstreamz.sbs/assets/images/log2.png" alt="Logo">
+  </div>
 
-      .custom-share-button:before {
-        font-family: "Font Awesome 5 Free";
-        content: "\f064";
-        font-weight: bold;
-      }
-    </style>
-  </head>
-
-  <body>
+  <!-- Player container -->
+  <div id="player-container">
     <video id="stream-media" controls preload="auto">
       <source src="" type="">
     </video>
 
-    <div id="error-message"></div>
+    <!-- Floating custom buttons -->
+    <div class="custom-download-button"><i class="fas fa-download"></i></div>
+    <div class="custom-share-button"><i class="fas fa-share-alt"></i></div>
 
-    <script>
-      var mediaLink = "{{ mediaLink }}";
+    <!-- Watermark -->
+    <div class="watermark">
+      <img src="https://chadstreamz.sbs/assets/images/log2.png" alt="Watermark">
+    </div>
+  </div>
 
-      if (mediaLink) {
-        var videoElement = document.querySelector('#stream-media source');
-        videoElement.setAttribute('src', mediaLink);
+  <div id="error-message"></div>
 
-        var player = new MediaElementPlayer('stream-media', {
-          features: ['playpause','progress','current','duration','volume','fullscreen','speed'],
-          speedText: 'Speed',
-          defaultSpeed: '1.0',
-          speeds: ['0.5', '0.75', '1.0', '1.25', '1.5', '2.0']
-        });
+  <script>
+    var mediaLink = "{{ mediaLink }}"; // dynamically replace this
 
-        // Add custom Download button
-        var downloadButton = document.createElement('div');
-        downloadButton.className = 'custom-download-button';
-        downloadButton.onclick = function(event) {
-          event.stopPropagation();
-          var link = document.createElement('a');
-          link.href = mediaLink;
-          link.download = "";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        };
-        document.body.appendChild(downloadButton);
+    if (mediaLink) {
+      var videoElement = document.querySelector('#stream-media source');
+      videoElement.setAttribute('src', mediaLink);
 
-        // Add custom Share button
-        var shareButton = document.createElement('div');
-        shareButton.className = 'custom-share-button';
-        shareButton.onclick = function(event) {
-          event.stopPropagation();
-          if (navigator.share) {
-            navigator.share({
-              title: "Play",
-              url: mediaLink
-            });
-          } else {
-            alert("Sharing not supported on this browser");
-          }
-        };
-        document.body.appendChild(shareButton);
+      var player = new MediaElementPlayer('stream-media', {
+        stretching: 'responsive',
+        features: [
+          'playpause', 'progress', 'current', 'duration', 
+          'tracks', 'volume', 'fullscreen', 'speed'
+        ],
+        speeds: ['0.5', '0.75', '1.0', '1.25', '1.5', '2.0'],
+        startVolume: 0.8,
+      });
 
-      } else {
-        document.getElementById('error-message').textContent = 'Error: Media URL not provided';
-      }
-    </script>
+      // Custom download button
+      document.querySelector('.custom-download-button').onclick = function(event) {
+        event.stopPropagation();
+        var link = document.createElement('a');
+        link.href = mediaLink;
+        link.download = "";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
 
-  </body>
+      // Custom share button
+      document.querySelector('.custom-share-button').onclick = function(event) {
+        event.stopPropagation();
+        if (navigator.share) {
+          navigator.share({
+            title: "Play",
+            url: mediaLink
+          });
+        } else {
+          alert("Sharing not supported on this browser");
+        }
+      };
+
+    } else {
+      document.getElementById('error-message').textContent = 'Error: Media URL not provided';
+    }
+  </script>
+</body>
 </html>
