@@ -69,27 +69,26 @@
   <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.3/build/mediaelement-and-player.min.js"></script>
 
   <script>
-    const mediaLink = "{{ mediaLink }}"; // Replace with your MP4 or WebM media URL
-
+    const mediaLink = "{{ mediaLink }}"; // Replace with your MP4 or WebM URL
     const video = document.getElementById('stream-media');
 
     if (mediaLink) {
-      // Set source
       const source = video.querySelector('source');
       source.src = mediaLink;
-      source.type = 'video/mp4'; // Change to 'video/webm' if your file is WebM
-      video.load(); // Important to reload the source
+      source.type = 'video/mp4'; // change to 'video/webm' if needed
+      video.load(); // reload the video source
 
-      // Initialize MediaElementPlayer
+      // Initialize MediaElementPlayer with CDN pluginPath
       const player = new MediaElementPlayer(video, {
         features: ['playpause','current','progress','duration','volume','fullscreen','tracks','speed'],
         enableAutosize: true,
         videoWidth: '100%',
         videoHeight: '100%',
-        stretching: 'auto'
+        stretching: 'auto',
+        pluginPath: 'https://cdn.jsdelivr.net/npm/mediaelement@5.0.3/build/' // Fix for SVG icons
       });
 
-      // Download Button
+      // Download button
       const downloadBtn = document.createElement('div');
       downloadBtn.className = 'custom-button';
       downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
@@ -103,7 +102,7 @@
       };
       video.parentElement.appendChild(downloadBtn);
 
-      // Share Button
+      // Share button
       const shareBtn = document.createElement('div');
       shareBtn.className = 'custom-button custom-share';
       shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
