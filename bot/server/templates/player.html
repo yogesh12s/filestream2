@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Play Files</title>
 
-  <!-- MediaElement CSS from CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mediaelement@5.0.3/build/mediaelementplayer.min.css">
+  <!-- Video.js CSS -->
+  <link href="https://vjs.zencdn.net/8.14.1/video-js.css" rel="stylesheet" />
 
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -18,16 +18,9 @@
       background: black;
     }
 
-    #stream-media {
+    .video-js {
       width: 100%;
       height: 100%;
-    }
-
-    #error-message {
-      color: red;
-      font-size: 24px;
-      text-align: center;
-      margin-top: 20px;
     }
 
     .custom-button {
@@ -58,66 +51,49 @@
 </head>
 <body>
 
-  <video id="stream-media" controls preload="auto">
-    <source src="" type="video/mp4">
-    <p>To view this video please enable JavaScript, and consider upgrading to a web browser that supports HTML5 video</p>
+  <video
+    id="my-video"
+    class="video-js vjs-big-play-centered"
+    controls
+    preload="auto"
+    data-setup='{}'>
+    <source src="{{ mediaLink }}" type="video/mp4" />
+    <p class="vjs-no-js">
+      To view this video please enable JavaScript, and consider upgrading to a web browser that supports HTML5 video.
+    </p>
   </video>
 
-  <div id="error-message"></div>
+  <!-- Download Button -->
+  <div id="downloadBtn" class="custom-button"><i class="fas fa-download"></i></div>
+  <!-- Share Button -->
+  <div id="shareBtn" class="custom-button custom-share"><i class="fas fa-share-alt"></i></div>
 
-  <!-- MediaElement JS from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.3/build/mediaelement-and-player.min.js"></script>
+  <!-- Video.js JS -->
+  <script src="https://vjs.zencdn.net/8.14.1/video.min.js"></script>
 
   <script>
-    const mediaLink = "{{ mediaLink }}"; // Replace with your MP4 or WebM URL
-    const video = document.getElementById('stream-media');
+    const mediaLink = "{{ mediaLink }}"; // Replace with your media URL
+    const player = videojs('my-video');
 
-    if (mediaLink) {
-      const source = video.querySelector('source');
-      source.src = mediaLink;
-      source.type = 'video/mp4'; // change to 'video/webm' if needed
-      video.load(); // reload the video source
+    // Download button
+    document.getElementById('downloadBtn').onclick = () => {
+      const link = document.createElement('a');
+      link.href = mediaLink;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
-      // Initialize MediaElementPlayer with CDN pluginPath
-      const player = new MediaElementPlayer(video, {
-        features: ['playpause','current','progress','duration','volume','fullscreen','tracks','speed'],
-        enableAutosize: true,
-        videoWidth: '100%',
-        videoHeight: '100%',
-        stretching: 'auto',
-        pluginPath: 'https://cdn.jsdelivr.net/npm/mediaelement@5.0.3/build/' // Fix for SVG icons
-      });
-
-      // Download button
-      const downloadBtn = document.createElement('div');
-      downloadBtn.className = 'custom-button';
-      downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
-      downloadBtn.onclick = () => {
-        const link = document.createElement('a');
-        link.href = mediaLink;
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
-      video.parentElement.appendChild(downloadBtn);
-
-      // Share button
-      const shareBtn = document.createElement('div');
-      shareBtn.className = 'custom-button custom-share';
-      shareBtn.innerHTML = '<i class="fas fa-share-alt"></i>';
-      shareBtn.onclick = () => {
-        if (navigator.share) {
-          navigator.share({ title: "Play", url: mediaLink });
-        } else {
-          alert("Sharing not supported on this browser.");
-        }
-      };
-      video.parentElement.appendChild(shareBtn);
-
-    } else {
-      document.getElementById('error-message').textContent = 'Error: Media URL not provided';
-    }
+    // Share button
+    document.getElementById('shareBtn').onclick = () => {
+      if (navigator.share) {
+        navigator.share({ title: "Play", url: mediaLink });
+      } else {
+        alert("Sharing not supported on this browser.");
+      }
+    };
   </script>
+
 </body>
 </html>
