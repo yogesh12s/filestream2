@@ -68,13 +68,19 @@
   <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.3/build/mediaelement-and-player.min.js"></script>
 
   <script>
-    const mediaLink = "{{ mediaLink }}"; // Your media URL
+    const mediaLink = "{{ mediaLink }}"; // Replace with your media URL
 
     const video = document.getElementById('stream-media');
 
     if (mediaLink) {
-      video.querySelector('source').setAttribute('src', mediaLink);
+      // Set source first
+      const source = video.querySelector('source');
+      source.src = mediaLink;
 
+      // Important: reload the video
+      video.load();
+
+      // Initialize MediaElementPlayer AFTER loading source
       const player = new MediaElementPlayer(video, {
         features: [
           'playpause','current','progress','duration','volume','fullscreen','tracks','speed'
