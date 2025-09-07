@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Enhanced MediaElement.js Player</title>
   <meta charset="UTF-8">
+  <title>MediaElement Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- MediaElement.js -->
+  <!-- MediaElement.js CSS/JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelementplayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelement-and-player.min.js"></script>
 
-  <!-- Icons -->
+  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
   <style>
@@ -17,14 +17,19 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      background: black;
+      background: #000;
       display: flex;
       flex-direction: column;
     }
     /* Header */
-    #header { background: #111; padding: 10px; text-align: center; }
+    #header {
+      background: #111;
+      padding: 10px;
+      text-align: center;
+    }
     #header img { height: 40px; }
-    /* Player container */
+
+    /* Player area */
     #player-container {
       flex: 1;
       position: relative;
@@ -33,58 +38,81 @@
       justify-content: center;
       align-items: center;
     }
-    video { width: 100% !important; height: 100% !important; }
-    /* Loader spinner */
+    video {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Loader */
     #loader {
       position: absolute;
-      width: 60px; height: 60px;
+      width: 60px;
+      height: 60px;
       border: 6px solid rgba(255,255,255,0.2);
       border-top: 6px solid #fff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       z-index: 1000;
+      display: none;
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-    /* Overlay play button */
+
+    /* Overlay Play */
     #play-overlay {
-      position: absolute; width: 80px; height: 80px;
-      border-radius: 50%; background: rgba(0,0,0,0.6);
-      color: white; display: flex; justify-content: center; align-items: center;
-      font-size: 36px; cursor: pointer; z-index: 1001;
-      transition: 0.3s;
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 36px;
+      cursor: pointer;
+      z-index: 1001;
     }
     #play-overlay:hover { background: rgba(255,255,255,0.8); color: black; }
-    /* Custom floating buttons */
+
+    /* Custom buttons */
     .custom-btn {
-      position: absolute; left: 10px;
+      position: absolute;
+      left: 10px;
       width: 35px; height: 35px;
-      background: rgba(0,0,0,0.7); border-radius: 50%;
-      text-align: center; line-height: 35px;
-      color: white; cursor: pointer; z-index: 9999; font-size: 16px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 35px;
+      color: white;
+      cursor: pointer;
+      z-index: 9999;
+      font-size: 16px;
     }
     .custom-btn:hover { background: rgba(255,255,255,0.7); color: black; }
     .custom-download { top: 10px; }
     .custom-share { top: 55px; }
+
     /* Watermark */
     .watermark {
-      position: absolute; bottom: 15px; right: 15px;
-      opacity: 0.8; z-index: 9999;
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      opacity: 0.8;
+      z-index: 9999;
     }
     .watermark img { height: 40px; }
   </style>
 </head>
 <body>
-
-  <!-- Header with Logo -->
+  <!-- Header -->
   <div id="header">
     <img src="https://chadstreamz.sbs/assets/images/log2.png" alt="Logo">
   </div>
 
-  <!-- Video Player Section -->
+  <!-- Video Player -->
   <div id="player-container">
-    <video id="stream-media" controls preload="auto"
-           poster="https://chadstreamz.sbs/assets/images/log2.png">
-      <source src="{{ mediaLink }}" type="video/mp4">
+    <video id="stream-media" controls preload="auto" poster="https://chadstreamz.sbs/assets/images/log2.png">
+      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
     </video>
 
     <div id="loader"></div>
@@ -97,59 +125,55 @@
   </div>
 
   <script>
-    const mediaLink = "{{ mediaLink }}";
     const video = document.getElementById('stream-media');
     const loader = document.getElementById('loader');
     const overlay = document.getElementById('play-overlay');
+    const mediaLink = video.querySelector('source').src;
 
-    if (mediaLink) {
-      const player = new MediaElementPlayer(video, {
-        stretching: 'responsive',
-        features: [
-          'playpause', 'current', 'progress', 'duration',
-          'tracks', 'volume', 'fullscreen', 'speed'
-        ],
-        useDefaultControls: true,
-        startVolume: 0.8,
-        speeds: ['0.5', '0.75', '1.0', '1.25', '1.5', '2.0'],
-        defaultSeekBackwardInterval: (media) => 10,
-        defaultSeekForwardInterval:  (media) => 10
-      });
+    const player = new MediaElementPlayer(video, {
+      stretching: 'responsive',
+      features: [
+        'playpause', 'current', 'progress', 'duration',
+        'tracks', 'volume', 'mute', 'speed', 'fullscreen'
+      ],
+      speeds: ['0.5', '0.75', '1.0', '1.25', '1.5', '2.0'],
+      defaultSeekBackwardInterval: () => 10,
+      defaultSeekForwardInterval: () => 10,
+      startVolume: 0.8
+    });
 
-      // Loader control
-      video.addEventListener('waiting', () => loader.style.display = 'block');
-      video.addEventListener('canplay', () => loader.style.display = 'none');
-      video.addEventListener('playing', () => loader.style.display = 'none');
+    // Loader
+    video.addEventListener('waiting', () => loader.style.display = 'block');
+    video.addEventListener('canplay', () => loader.style.display = 'none');
+    video.addEventListener('playing', () => loader.style.display = 'none');
 
-      // Overlay play handling
-      overlay.addEventListener('click', () => {
-        overlay.style.display = 'none';
-        loader.style.display = 'block';
-        video.play();
-      });
-      video.addEventListener('pause', () => overlay.style.display = 'flex');
-      video.addEventListener('play', () => overlay.style.display = 'none');
+    // Overlay play
+    overlay.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      loader.style.display = 'block';
+      video.play();
+    });
+    video.addEventListener('pause', () => overlay.style.display = 'flex');
+    video.addEventListener('play', () => overlay.style.display = 'none');
 
-      // Download button action
-      document.querySelector('.custom-download').onclick = () => {
-        const link = document.createElement('a');
-        link.href = mediaLink;
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
+    // Download
+    document.querySelector('.custom-download').onclick = () => {
+      const link = document.createElement('a');
+      link.href = mediaLink;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
-      // Share button action
-      document.querySelector('.custom-share').onclick = () => {
-        if (navigator.share) {
-          navigator.share({ title: 'Play', url: mediaLink });
-        } else alert('Sharing not supported on this browser');
-      };
-
-    } else {
-      console.error('Error: Media URL not provided');
-    }
+    // Share
+    document.querySelector('.custom-share').onclick = () => {
+      if (navigator.share) {
+        navigator.share({ title: 'Play', url: mediaLink });
+      } else {
+        alert('Sharing not supported on this browser');
+      }
+    };
   </script>
 </body>
 </html>
