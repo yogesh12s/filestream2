@@ -24,7 +24,6 @@
       flex-direction: column;
     }
 
-    /* Header with logo */
     #header {
       background: #111;
       padding: 10px;
@@ -72,7 +71,7 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Play button overlay */
+    /* Play overlay */
     #play-overlay {
       position: absolute;
       width: 80px;
@@ -93,7 +92,7 @@
       color: black;
     }
 
-    /* Floating custom buttons */
+    /* Custom floating buttons */
     .custom-download-button,
     .custom-share-button {
       position: absolute;
@@ -109,7 +108,6 @@
       z-index: 9999;
       font-size: 16px;
     }
-
     .custom-download-button { top: 10px; }
     .custom-share-button { top: 55px; }
 
@@ -133,15 +131,13 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
   <div id="header">
     <img src="https://chadstreamz.sbs/assets/images/log2.png" alt="Logo">
   </div>
 
-  <!-- Player -->
   <div id="player-container">
-    <video id="stream-media" preload="auto">
-      <source src="" type="">
+    <video id="stream-media" controls preload="auto">
+      <source src="{{ mediaLink }}" type="video/mp4">
     </video>
 
     <!-- Loader -->
@@ -150,7 +146,7 @@
     <!-- Play button -->
     <div id="play-overlay"><i class="fas fa-play"></i></div>
 
-    <!-- Custom Buttons -->
+    <!-- Custom buttons -->
     <div class="custom-download-button"><i class="fas fa-download"></i></div>
     <div class="custom-share-button"><i class="fas fa-share-alt"></i></div>
 
@@ -163,27 +159,24 @@
   <div id="error-message"></div>
 
   <script>
-    var mediaLink = "{{ mediaLink }}"; // replace dynamically
+    var mediaLink = "{{ mediaLink }}"; // inject dynamically
+    var video = document.getElementById('stream-media');
+    var loader = document.getElementById('loader');
+    var overlay = document.getElementById('play-overlay');
 
     if (mediaLink) {
-      var videoElement = document.querySelector('#stream-media source');
-      videoElement.setAttribute('src', mediaLink);
-
-      var player = new MediaElementPlayer('stream-media', {
+      // Initialize MediaElement player
+      var player = new MediaElementPlayer(video, {
         stretching: 'responsive',
         features: [
-          'playpause', 'progress', 'current', 'duration', 
+          'playpause', 'progress', 'current', 'duration',
           'tracks', 'volume', 'fullscreen', 'speed'
         ],
         speeds: ['0.5', '0.75', '1.0', '1.25', '1.5', '2.0'],
-        startVolume: 0.8,
+        startVolume: 0.8
       });
 
-      var loader = document.getElementById('loader');
-      var overlay = document.getElementById('play-overlay');
-      var video = document.getElementById('stream-media');
-
-      // Show loader until video is ready
+      // Loader events
       video.addEventListener('waiting', () => loader.style.display = 'block');
       video.addEventListener('canplay', () => loader.style.display = 'none');
       video.addEventListener('playing', () => loader.style.display = 'none');
@@ -194,20 +187,12 @@
         loader.style.display = 'block';
         video.play();
       });
-
-      // When paused, show overlay again
-      video.addEventListener('pause', () => {
-        overlay.style.display = 'flex';
-      });
-
-      // Hide overlay when playing
-      video.addEventListener('play', () => {
-        overlay.style.display = 'none';
-      });
+      video.addEventListener('pause', () => overlay.style.display = 'flex');
+      video.addEventListener('play', () => overlay.style.display = 'none');
 
       // Download button
-      document.querySelector('.custom-download-button').onclick = function(event) {
-        event.stopPropagation();
+      document.querySelector('.custom-download-button').onclick = (e) => {
+        e.stopPropagation();
         var link = document.createElement('a');
         link.href = mediaLink;
         link.download = "";
@@ -217,8 +202,8 @@
       };
 
       // Share button
-      document.querySelector('.custom-share-button').onclick = function(event) {
-        event.stopPropagation();
+      document.querySelector('.custom-share-button').onclick = (e) => {
+        e.stopPropagation();
         if (navigator.share) {
           navigator.share({
             title: "Play",
@@ -228,7 +213,6 @@
           alert("Sharing not supported on this browser");
         }
       };
-
     } else {
       document.getElementById('error-message').textContent = 'Error: Media URL not provided';
     }
