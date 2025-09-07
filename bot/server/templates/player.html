@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Play Files</title>
+  <title>Enhanced MediaElement.js Player</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-Frame-Options" content="deny">
 
   <!-- MediaElement.js -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelementplayer.min.css">
   <script src="https://cdn.jsdelivr.net/npm/mediaelement@5.0.5/build/mediaelement-and-player.min.js"></script>
 
-  <!-- Font Awesome -->
+  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
   <style>
@@ -18,170 +17,111 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      width: 100%;
       background: black;
       display: flex;
       flex-direction: column;
     }
-
-    #header {
-      background: #111;
-      padding: 10px;
-      text-align: center;
-    }
-    #header img {
-      height: 40px;
-    }
-
+    /* Header */
+    #header { background: #111; padding: 10px; text-align: center; }
+    #header img { height: 40px; }
+    /* Player container */
     #player-container {
       flex: 1;
-      width: 100%;
       position: relative;
+      background: black;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: black;
     }
-
-    #stream-media {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    #error-message {
-      color: red;
-      font-size: 20px;
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    /* Loader */
+    video { width: 100% !important; height: 100% !important; }
+    /* Loader spinner */
     #loader {
       position: absolute;
-      width: 60px;
-      height: 60px;
-      border: 6px solid rgba(255, 255, 255, 0.2);
+      width: 60px; height: 60px;
+      border: 6px solid rgba(255,255,255,0.2);
       border-top: 6px solid #fff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       z-index: 1000;
     }
-    @keyframes spin {
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Play overlay */
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    /* Overlay play button */
     #play-overlay {
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 36px;
-      cursor: pointer;
-      z-index: 1001;
+      position: absolute; width: 80px; height: 80px;
+      border-radius: 50%; background: rgba(0,0,0,0.6);
+      color: white; display: flex; justify-content: center; align-items: center;
+      font-size: 36px; cursor: pointer; z-index: 1001;
       transition: 0.3s;
     }
-    #play-overlay:hover {
-      background: rgba(255, 255, 255, 0.8);
-      color: black;
-    }
-
+    #play-overlay:hover { background: rgba(255,255,255,0.8); color: black; }
     /* Custom floating buttons */
-    .custom-download-button,
-    .custom-share-button {
-      position: absolute;
-      left: 10px;
-      width: 35px;
-      height: 35px;
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 50%;
-      text-align: center;
-      line-height: 35px;
-      color: white;
-      cursor: pointer;
-      z-index: 9999;
-      font-size: 16px;
+    .custom-btn {
+      position: absolute; left: 10px;
+      width: 35px; height: 35px;
+      background: rgba(0,0,0,0.7); border-radius: 50%;
+      text-align: center; line-height: 35px;
+      color: white; cursor: pointer; z-index: 9999; font-size: 16px;
     }
-    .custom-download-button { top: 10px; }
-    .custom-share-button { top: 55px; }
-
-    .custom-download-button:hover,
-    .custom-share-button:hover {
-      background-color: rgba(255, 255, 255, 0.7);
-      color: black;
-    }
-
+    .custom-btn:hover { background: rgba(255,255,255,0.7); color: black; }
+    .custom-download { top: 10px; }
+    .custom-share { top: 55px; }
     /* Watermark */
     .watermark {
-      position: absolute;
-      bottom: 15px;
-      right: 15px;
-      opacity: 0.8;
-      z-index: 9999;
+      position: absolute; bottom: 15px; right: 15px;
+      opacity: 0.8; z-index: 9999;
     }
-    .watermark img {
-      height: 40px;
-    }
+    .watermark img { height: 40px; }
   </style>
 </head>
 <body>
+
+  <!-- Header with Logo -->
   <div id="header">
     <img src="https://chadstreamz.sbs/assets/images/log2.png" alt="Logo">
   </div>
 
+  <!-- Video Player Section -->
   <div id="player-container">
-    <video id="stream-media" controls preload="auto">
+    <video id="stream-media" controls preload="auto"
+           poster="https://chadstreamz.sbs/assets/images/log2.png">
       <source src="{{ mediaLink }}" type="video/mp4">
     </video>
 
-    <!-- Loader -->
     <div id="loader"></div>
-
-    <!-- Play button -->
     <div id="play-overlay"><i class="fas fa-play"></i></div>
-
-    <!-- Custom buttons -->
-    <div class="custom-download-button"><i class="fas fa-download"></i></div>
-    <div class="custom-share-button"><i class="fas fa-share-alt"></i></div>
-
-    <!-- Watermark -->
+    <div class="custom-btn custom-download"><i class="fas fa-download"></i></div>
+    <div class="custom-btn custom-share"><i class="fas fa-share-alt"></i></div>
     <div class="watermark">
       <img src="https://chadstreamz.sbs/assets/images/log2.png" alt="Watermark">
     </div>
   </div>
 
-  <div id="error-message"></div>
-
   <script>
-    var mediaLink = "{{ mediaLink }}"; // inject dynamically
-    var video = document.getElementById('stream-media');
-    var loader = document.getElementById('loader');
-    var overlay = document.getElementById('play-overlay');
+    const mediaLink = "{{ mediaLink }}";
+    const video = document.getElementById('stream-media');
+    const loader = document.getElementById('loader');
+    const overlay = document.getElementById('play-overlay');
 
     if (mediaLink) {
-      // Initialize MediaElement player
-      var player = new MediaElementPlayer(video, {
+      const player = new MediaElementPlayer(video, {
         stretching: 'responsive',
         features: [
-          'playpause', 'progress', 'current', 'duration',
+          'playpause', 'current', 'progress', 'duration',
           'tracks', 'volume', 'fullscreen', 'speed'
         ],
+        useDefaultControls: true,
+        startVolume: 0.8,
         speeds: ['0.5', '0.75', '1.0', '1.25', '1.5', '2.0'],
-        startVolume: 0.8
+        defaultSeekBackwardInterval: (media) => 10,
+        defaultSeekForwardInterval:  (media) => 10
       });
 
-      // Loader events
+      // Loader control
       video.addEventListener('waiting', () => loader.style.display = 'block');
       video.addEventListener('canplay', () => loader.style.display = 'none');
       video.addEventListener('playing', () => loader.style.display = 'none');
 
-      // Overlay play button
+      // Overlay play handling
       overlay.addEventListener('click', () => {
         overlay.style.display = 'none';
         loader.style.display = 'block';
@@ -190,31 +130,25 @@
       video.addEventListener('pause', () => overlay.style.display = 'flex');
       video.addEventListener('play', () => overlay.style.display = 'none');
 
-      // Download button
-      document.querySelector('.custom-download-button').onclick = (e) => {
-        e.stopPropagation();
-        var link = document.createElement('a');
+      // Download button action
+      document.querySelector('.custom-download').onclick = () => {
+        const link = document.createElement('a');
         link.href = mediaLink;
-        link.download = "";
+        link.download = '';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       };
 
-      // Share button
-      document.querySelector('.custom-share-button').onclick = (e) => {
-        e.stopPropagation();
+      // Share button action
+      document.querySelector('.custom-share').onclick = () => {
         if (navigator.share) {
-          navigator.share({
-            title: "Play",
-            url: mediaLink
-          });
-        } else {
-          alert("Sharing not supported on this browser");
-        }
+          navigator.share({ title: 'Play', url: mediaLink });
+        } else alert('Sharing not supported on this browser');
       };
+
     } else {
-      document.getElementById('error-message').textContent = 'Error: Media URL not provided';
+      console.error('Error: Media URL not provided');
     }
   </script>
 </body>
